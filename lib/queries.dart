@@ -1,7 +1,11 @@
-String listCountries = r'''
-          query{
-            continents{
-              code
-            }
-          }
-        ''';
+String myListFollowers = r'''
+query{
+  myListFollowers{
+    nextMaxId
+    size
+    followers{
+      username
+    }
+  }
+}
+''';
