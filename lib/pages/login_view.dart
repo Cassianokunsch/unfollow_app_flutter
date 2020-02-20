@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/mutations.dart';
+import 'package:unfollow_app_flutter/pages/home_view.dart';
+import 'package:unfollow_app_flutter/storage.dart';
 
 class LoginView extends StatefulWidget {
   static String tag = '/';
@@ -12,9 +14,10 @@ class LoginView extends StatefulWidget {
 }
 
 class _State extends State<LoginView> {
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
     final title = Column(
@@ -32,35 +35,52 @@ class _State extends State<LoginView> {
       ],
     );
 
-    final loginButton = Mutation(
-      options: MutationOptions(documentNode: gql(loginMutation)),
-      builder: (RunMutation login, QueryResult result) {
-        if (result.loading) {
-          print("logando");
-        }
-        return ButtonTheme(
-          height: 54.0,
-          child: RaisedButton(
-            color: Colors.blue,
-            textColor: Colors.white,
-            disabledColor: Colors.grey,
-            disabledTextColor: Colors.black,
-            splashColor: Colors.blueAccent,
-            onPressed: () {
-              login(
-                <String, dynamic>{
-                  'username': _usernameController.text,
-                  'password': _passwordController.text,
-                },
-              );
-            },
-            child: Text("Entrar", style: TextStyle(fontSize: 20.0)),
-          ),
-        );
-      },
-    );
+    Mutation loginButton() {
+      return Mutation(
+        options: MutationOptions(
+          documentNode: gql(loginMutation),
+          onCompleted: (dynamic resultData) async {
+            if (resultData != null) {
+              await setToken(resultData['login']['token']);
+              print(resultData['login']['token']);
+              Navigator.pushNamed(context, HomeView.tag);
+            }
+          },
+          onError: (OperationException error) {
+            _scaffoldKey.currentState.showSnackBar(SnackBar(
+              content: Text(error.graphqlErrors[0].message),
+              duration: Duration(seconds: 5),
+            ));
+          },
+        ),
+        builder: (RunMutation login, QueryResult result) {
+          return ButtonTheme(
+            height: 54.0,
+            child: RaisedButton(
+              color: Colors.blue,
+              textColor: Colors.white,
+              disabledColor: Colors.grey,
+              disabledTextColor: Colors.black,
+              splashColor: Colors.blueAccent,
+              onPressed: () {
+                login(
+                  <String, dynamic>{
+                    'username': _usernameController.text,
+                    'password': _passwordController.text,
+                  },
+                );
+              },
+              child: result.loading
+                  ? CircularProgressIndicator(backgroundColor: Colors.white)
+                  : Text("Entrar", style: TextStyle(fontSize: 20.0)),
+            ),
+          );
+        },
+      );
+    }
 
     return Scaffold(
+      key: _scaffoldKey,
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -81,7 +101,7 @@ class _State extends State<LoginView> {
                   SizedBox(height: 10.0),
                   _getTextFormField('Password', true, _passwordController),
                   SizedBox(height: 20.0),
-                  loginButton,
+                  loginButton(),
                 ],
               ),
             ),

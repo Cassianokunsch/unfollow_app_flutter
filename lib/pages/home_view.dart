@@ -2,14 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/queries.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   static String tag = 'home-view';
+
+  @override
+  _State createState() {
+    return _State();
+  }
+}
+
+class _State extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Query(
-          options: QueryOptions(documentNode: gql(listCountries)),
+          options: QueryOptions(documentNode: gql(myListFollowers)),
           builder: (QueryResult result,
               {VoidCallback refetch, FetchMore fetchMore}) {
             if (result.loading) {
@@ -21,15 +29,16 @@ class HomeView extends StatelessWidget {
               return Text("No Data Found !");
             }
 
-            List repositories = result.data['continents'];
+            List followers = result.data['myListFollowers']['followers'];
 
             return ListView.builder(
-                itemCount: repositories.length,
-                itemBuilder: (context, index) {
-                  final repository = repositories[index];
+              itemCount: followers.length,
+              itemBuilder: (context, index) {
+                final repository = followers[index];
 
-                  return Text(repository['code']);
-                });
+                return Text(repository['username']);
+              },
+            );
           },
         ),
       ),
