@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:unfollow_app_flutter/mutations.dart';
+import 'package:unfollow_app_flutter/graphql/mutations.dart';
 import 'package:unfollow_app_flutter/pages/home_view.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
@@ -18,67 +18,85 @@ class _State extends State<LoginView> {
   final TextEditingController _passwordController = TextEditingController();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final title = Column(
+    children: <Widget>[
+      Text(
+        "Unfollow",
+        style:
+            TextStyle(color: Colors.white, fontSize: 70, fontFamily: 'Lobster'),
+      ),
+      Text(
+        "App",
+        style:
+            TextStyle(color: Colors.white, fontSize: 70, fontFamily: 'Lobster'),
+      ),
+    ],
+  );
+
+  Mutation loginButton(context) {
+    return Mutation(
+      options: MutationOptions(
+        documentNode: gql(loginMutation),
+        onCompleted: (dynamic resultData) async {
+          if (resultData != null) {
+            await setToken(resultData['login']['token']);
+            await setUser(resultData['login']['user']);
+            Navigator.pushNamed(context, HomeView.tag);
+          }
+        },
+        onError: (OperationException error) {
+          _scaffoldKey.currentState.showSnackBar(SnackBar(
+            content: Text(error.graphqlErrors[0].message),
+            duration: Duration(seconds: 3),
+          ));
+        },
+      ),
+      builder: (RunMutation login, QueryResult result) {
+        return ButtonTheme(
+          height: 54.0,
+          child: RaisedButton(
+            color: Colors.lightGreen,
+            textColor: Colors.black,
+            disabledColor: Colors.grey,
+            disabledTextColor: Colors.black,
+            splashColor: Colors.lightGreenAccent,
+            onPressed: () => submit(login),
+            child: result.loading
+                ? SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation(Colors.black),
+                      strokeWidth: 3.0,
+                    ),
+                  )
+                : Text(
+                    "Entrar",
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+          ),
+        );
+      },
+    );
+  }
+
+  void submit(RunMutation login) {
+    if (_passwordController.text != '' && _usernameController.text != '') {
+      login(<String, dynamic>{
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+      });
+    } else {
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('Preencha corretamente os campos!'),
+        duration: Duration(seconds: 3),
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final title = Column(
-      children: <Widget>[
-        Text(
-          "Unfollow",
-          style: TextStyle(
-              color: Colors.white, fontSize: 70, fontFamily: 'Lobster'),
-        ),
-        Text(
-          "App",
-          style: TextStyle(
-              color: Colors.white, fontSize: 70, fontFamily: 'Lobster'),
-        ),
-      ],
-    );
-
-    Mutation loginButton() {
-      return Mutation(
-        options: MutationOptions(
-          documentNode: gql(loginMutation),
-          onCompleted: (dynamic resultData) async {
-            if (resultData != null) {
-              await setToken(resultData['login']['token']);
-              print(resultData['login']['token']);
-              Navigator.pushNamed(context, HomeView.tag);
-            }
-          },
-          onError: (OperationException error) {
-            _scaffoldKey.currentState.showSnackBar(SnackBar(
-              content: Text(error.graphqlErrors[0].message),
-              duration: Duration(seconds: 5),
-            ));
-          },
-        ),
-        builder: (RunMutation login, QueryResult result) {
-          return ButtonTheme(
-            height: 54.0,
-            child: RaisedButton(
-              color: Colors.blue,
-              textColor: Colors.white,
-              disabledColor: Colors.grey,
-              disabledTextColor: Colors.black,
-              splashColor: Colors.blueAccent,
-              onPressed: () {
-                login(
-                  <String, dynamic>{
-                    'username': _usernameController.text,
-                    'password': _passwordController.text,
-                  },
-                );
-              },
-              child: result.loading
-                  ? CircularProgressIndicator(backgroundColor: Colors.white)
-                  : Text("Entrar", style: TextStyle(fontSize: 20.0)),
-            ),
-          );
-        },
-      );
-    }
-
     return Scaffold(
       key: _scaffoldKey,
       body: Container(
@@ -101,7 +119,7 @@ class _State extends State<LoginView> {
                   SizedBox(height: 10.0),
                   _getTextFormField('Password', true, _passwordController),
                   SizedBox(height: 20.0),
-                  loginButton(),
+                  loginButton(context),
                 ],
               ),
             ),

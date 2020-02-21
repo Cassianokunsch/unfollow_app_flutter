@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unfollow_app_flutter/client_provider.dart';
+import 'package:unfollow_app_flutter/graphql/client_provider.dart';
 import 'package:unfollow_app_flutter/routes.dart';
 
 void main() => runApp(MyApp());
