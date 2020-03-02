@@ -14,7 +14,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _State extends State<HomeView> {
-  User _userInfo;
+  UserInfo _userInfo;
 
   @override
   void initState() {
@@ -23,7 +23,7 @@ class _State extends State<HomeView> {
   }
 
   _getUserInfo() async {
-    User user = await getUser();
+    UserInfo user = await getUser();
     setState(() {
       _userInfo = user;
     });

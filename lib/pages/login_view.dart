@@ -5,7 +5,7 @@ import 'package:unfollow_app_flutter/pages/home_view.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
 class LoginView extends StatefulWidget {
-  static String tag = '/';
+  static String tag = '/login';
 
   @override
   _State createState() {
@@ -14,6 +14,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _State extends State<LoginView> {
+  final bool _obscureText = true;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -41,7 +42,6 @@ class _State extends State<LoginView> {
         onCompleted: (dynamic resultData) async {
           if (resultData != null) {
             await setToken(resultData['login']['token']);
-            await setUser(resultData['login']['user']);
             Navigator.pushNamed(context, HomeView.tag);
           }
         },
@@ -115,9 +115,9 @@ class _State extends State<LoginView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _getTextFormField('Username', false, _usernameController),
+                  _getTextFormField('Usuário', false, _usernameController),
                   SizedBox(height: 10.0),
-                  _getTextFormField('Password', true, _passwordController),
+                  _getTextFormField('Senha', true, _passwordController),
                   SizedBox(height: 20.0),
                   loginButton(context),
                 ],

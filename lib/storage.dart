@@ -23,7 +23,7 @@ Future<void> setUser(Map<String, dynamic> user) async {
   await prefs.setString('user', json.encode(user));
 }
 
-Future<User> getUser() async {
+Future<UserInfo> getUser() async {
   final prefs = await SharedPreferences.getInstance();
-  return User.fromJson(jsonDecode(prefs.getString('user')));
+  return UserInfo.fromJson(jsonDecode(prefs.getString('user')));
 }

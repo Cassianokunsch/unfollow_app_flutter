@@ -1,4 +1,4 @@
-class User {
+class UserInfo {
   String pk;
   String username;
   String fullName;
@@ -12,7 +12,7 @@ class User {
   int followingCount;
   String biography;
 
-  User.fromJson(Map<String, dynamic> json) {
+  UserInfo.fromJson(Map<String, dynamic> json) {
     this.biography = json['biography'];
     this.followerCount = json['followerCount'];
     this.followingCount = json['followingCount'];
