@@ -36,7 +36,6 @@ class _UserListState extends State<UserList> {
                 _listUsers[index]['profilePicUrl'],
                 _listUsers[index]['username'],
                 () => this._onDeleteUser(index));
-            ;
           },
         ),
       ),
