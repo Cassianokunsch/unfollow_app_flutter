@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/graphql/queries.dart';
-import 'package:unfollow_app_flutter/models/user.dart';
-import 'package:unfollow_app_flutter/storage.dart';
+
+import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 
 class HomeView extends StatefulWidget {
   static String tag = 'home';
@@ -14,58 +14,85 @@ class HomeView extends StatefulWidget {
 }
 
 class _State extends State<HomeView> {
-  UserInfo _userInfo;
-
-  @override
-  void initState() {
-    super.initState();
-    _getUserInfo();
-  }
-
-  _getUserInfo() async {
-    UserInfo user = await getUser();
-    setState(() {
-      _userInfo = user;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          color: Colors.white,
-          child: Column(
+        child: Query(
+          options: QueryOptions(
+            documentNode: gql('''
+            query{
+              me{
+                pk
+                username
+                fullName
+                isPrivate
+                profilePicUrl
+                profilePicId
+                isVerified
+                hasAnonymousProfilePicture
+                latestReelMedia
+                followerCount
+                followingCount
+                biography
+              }
+            }
+            '''),
+          ),
+          builder: (QueryResult result,
+              {VoidCallback refetch, FetchMore fetchMore}) {
+            if (result.hasException) {
+              if (result.exception.graphqlErrors[0].message
+                  .contains('Autorização pendente')) {
+                Navigator.pushReplacementNamed(
+                    context, AutorizationCodeView.tag);
+              }
+              return Text(result.exception.toString());
+            }
+
+            if (result.loading) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            return buildContainer(result.data['me']);
+          },
+        ),
+      ),
+    );
+  }
+
+  Container buildContainer(userInfo) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: <Widget>[
+          profileImage(userInfo['profilePicUrl']),
+          SizedBox(height: 20.0),
+          Column(
             children: <Widget>[
-              profileImage(_userInfo.profilePicUrl),
-              SizedBox(height: 20.0),
-              Column(
+              Center(
+                child: Column(
+                  children: <Widget>[
+                    Text(userInfo['fullName']),
+                    Text('@' + userInfo['username']),
+                  ],
+                ),
+              ),
+              Row(
                 children: <Widget>[
-                  Center(
-                    child: Column(
-                      children: <Widget>[
-                        Text(_userInfo.fullName),
-                        Text('@' + _userInfo.username),
-                      ],
-                    ),
+                  userInfoFollowFollowing(
+                    "Seguidores",
+                    userInfo['followerCount'].toString(),
                   ),
-                  Row(
-                    children: <Widget>[
-                      userInfoFollowFollowing(
-                        "Seguidores",
-                        _userInfo.followerCount.toString(),
-                      ),
-                      userInfoFollowFollowing(
-                        "Seguindo",
-                        _userInfo.followingCount.toString(),
-                      ),
-                    ],
+                  userInfoFollowFollowing(
+                    "Seguindo",
+                    userInfo['followingCount'].toString(),
                   ),
                 ],
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

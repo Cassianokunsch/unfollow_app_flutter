@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/graphql/mutations.dart';
 import 'package:unfollow_app_flutter/pages/home_view.dart';
+import 'package:unfollow_app_flutter/pages/users_list_view.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
 class LoginView extends StatefulWidget {
-  static String tag = '/login';
+  static String tag = '/';
 
   @override
   _State createState() {
@@ -14,7 +15,6 @@ class LoginView extends StatefulWidget {
 }
 
 class _State extends State<LoginView> {
-  final bool _obscureText = true;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -35,14 +35,15 @@ class _State extends State<LoginView> {
     ],
   );
 
-  Mutation loginButton(context) {
+  Mutation _loginButton(context) {
     return Mutation(
       options: MutationOptions(
         documentNode: gql(loginMutation),
         onCompleted: (dynamic resultData) async {
           if (resultData != null) {
             await setToken(resultData['login']['token']);
-            Navigator.pushNamed(context, HomeView.tag);
+            print(resultData['login']['token']);
+            Navigator.pushReplacementNamed(context, HomeView.tag);
           }
         },
         onError: (OperationException error) {
@@ -61,7 +62,7 @@ class _State extends State<LoginView> {
             disabledColor: Colors.grey,
             disabledTextColor: Colors.black,
             splashColor: Colors.lightGreenAccent,
-            onPressed: () => submit(login),
+            onPressed: () => _submit(login),
             child: result.loading
                 ? SizedBox(
                     height: 30,
@@ -81,7 +82,7 @@ class _State extends State<LoginView> {
     );
   }
 
-  void submit(RunMutation login) {
+  _submit(RunMutation login) {
     if (_passwordController.text != '' && _usernameController.text != '') {
       login(<String, dynamic>{
         'username': _usernameController.text,
@@ -119,7 +120,7 @@ class _State extends State<LoginView> {
                   SizedBox(height: 10.0),
                   _getTextFormField('Senha', true, _passwordController),
                   SizedBox(height: 20.0),
-                  loginButton(context),
+                  _loginButton(context),
                 ],
               ),
             ),
