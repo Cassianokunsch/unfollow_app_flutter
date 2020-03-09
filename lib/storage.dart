@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-import 'package:unfollow_app_flutter/models/user.dart';
+import 'package:unfollow_app_flutter/models/user_info.dart';
 
 Future<String> getToken() async {
   final prefs = await SharedPreferences.getInstance();

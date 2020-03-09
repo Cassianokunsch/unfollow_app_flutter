@@ -1,4 +1,4 @@
-String loginMutation = r'''
+String login = r'''
 mutation login($username: String!, $password: String!){
   login(password: $password, username: $username){
     token
@@ -7,7 +7,7 @@ mutation login($username: String!, $password: String!){
 }
 ''';
 
-String unfollowMutation = r'''
+String unfollow = r'''
 mutation unfollow($pk: String!){
   unfollow(userIdToUnfollow: $pk){
     message

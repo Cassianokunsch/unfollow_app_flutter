@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:unfollow_app_flutter/pages/home_view.dart';
-import 'package:unfollow_app_flutter/pages/login_view.dart';
-import 'package:unfollow_app_flutter/pages/users_list_view.dart';
+import 'package:unfollow_app_flutter/pages/home_screen.dart';
+import 'package:unfollow_app_flutter/pages/login_screen.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
 class SplashScreen extends StatefulWidget {
-  static String tag = '/splash';
+  static String routeName = '/splash';
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -28,9 +27,9 @@ class _SplashScreenState extends State<SplashScreen> {
   _isLogged() async {
     String token = await getToken();
     if (token != null) {
-      Navigator.pushReplacementNamed(context, HomeView.tag);
+      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
     } else {
-      Navigator.pushReplacementNamed(context, LoginView.tag);
+      Navigator.pushReplacementNamed(context, LoginScreen.routeName);
     }
   }
 }

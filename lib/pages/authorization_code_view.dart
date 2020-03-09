@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:unfollow_app_flutter/graphql/mutations.dart';
-import 'package:unfollow_app_flutter/pages/users_list_view.dart';
+import 'package:unfollow_app_flutter/graphql/mutation.dart';
+import 'package:unfollow_app_flutter/pages/user_list_screen.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
 class AutorizationCodeView extends StatefulWidget {
@@ -38,7 +38,7 @@ class _AutorizationCodeViewState extends State<AutorizationCodeView> {
           if (resultData != null) {
             await setToken(resultData['login']['token']);
             print(resultData['login']['token']);
-            Navigator.pushReplacementNamed(context, UserList.tag);
+            Navigator.pushReplacementNamed(context, UserListScreen.tag);
           }
         },
         onError: (OperationException error) {

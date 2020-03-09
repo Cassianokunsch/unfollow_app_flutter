@@ -39,15 +39,13 @@ class CardUser extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(username),
-                  Text(fullName,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black45)),
+                  Text(fullName, style: TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
             Spacer(),
             IconButton(
-              color: Colors.red,
+              color: Colors.white54,
               icon: Icon(Icons.delete),
               onPressed: () {
                 onDelete();
