@@ -27,13 +27,13 @@ class _UserListScreenState extends State<UserListScreen> {
   bool isLoading = true;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     getData();
   }
 
   getData() async {
-    client = QueryState.initState();
+    client = GraphQLProvider.of(context).value;
   }
 
   @override
