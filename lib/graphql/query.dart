@@ -13,12 +13,12 @@ query myListFollowers($maxId: String!){
 }
 ''';
 
-String myListFollowings = '''
-query{
-  myListFollowers{
+String myListFollowings = r'''
+query myListFollowings($maxId: String!){
+  myListFollowings(maxId: $maxId){
     nextMaxId
     size
-    followers{
+    followings{
       pk
       username
       fullName

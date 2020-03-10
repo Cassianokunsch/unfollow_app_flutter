@@ -37,7 +37,7 @@ class _UserListScreenState extends State<UserListScreen> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        getData();
+        _getData();
       }
     });
   }
@@ -45,10 +45,10 @@ class _UserListScreenState extends State<UserListScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    getData();
+    _getData();
   }
 
-  getData() async {
+  _getData() async {
     client = GraphQLProvider.of(context).value;
     String typeQuery;
     String typeUser;
@@ -76,22 +76,21 @@ class _UserListScreenState extends State<UserListScreen> {
     );
 
     if (result.hasException) {
-      if (result.exception.graphqlErrors[0].message
-          .contains('Autorização pendente')) {
+      var message = result.exception.graphqlErrors[0].message;
+      if (message.contains('Autorização pendente')) {
         Navigator.pushReplacementNamed(context, AutorizationCodeView.routeName);
-      } else if (result.exception.graphqlErrors[0].message
-          .contains('Não há sessão para esse usuário!')) {
+      } else if (message.contains('Não há sessão para esse usuário!')) {
         await setToken('');
         Navigator.pushReplacementNamed(context, LoginScreen.routeName);
       }
-      _scaffoldKey.currentState
-          .showSnackBar(snackBar(result.exception.graphqlErrors[0].message));
+      _scaffoldKey.currentState.showSnackBar(snackBar(message));
       setState(() {
         isLoading = false;
       });
     } else {
+      print(result.data['myListFollowings']);
       setState(() {
-        _listUsers.addAll(result.data[query][typeUser]);
+        _listUsers.addAll(result.data['myListFollowings'][typeUser]);
         isLoading = false;
         maxId = result.data[typeQuery]['nextMaxId'];
       });
@@ -156,8 +155,12 @@ class _UserListScreenState extends State<UserListScreen> {
         return CardUser(
           fullName: _listUsers[index]['fullName'],
           img: _listUsers[index]['profilePicUrl'],
-          onDelete: () => _unFollowUser(index),
+          onPressedIcon: widget.title.compareTo("Não te seguem") == 0
+              ? () => _unFollowUser(index)
+              : () => print("Teste"),
           username: _listUsers[index]['username'],
+          isUnfollow:
+              widget.title.compareTo("Não te seguem") == 0 ? true : false,
         );
       },
     );

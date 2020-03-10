@@ -12,10 +12,16 @@ class ClientProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     final HttpLink _httpLink = HttpLink(uri: uri);
     final AuthLink _authLink = AuthLink(getToken: () async => getToken());
-    final Link link = _authLink.concat(_httpLink);
+    final ErrorLink _erroLink =
+        ErrorLink(errorHandler: (ErrorResponse response) {
+      print('oi');
+      if (response.exception != null) {
+        print(response.exception.graphqlErrors);
+      }
+    });
 
     final ValueNotifier<GraphQLClient> _client = ValueNotifier(GraphQLClient(
-      link: link,
+      link: Link.from([_authLink, _httpLink, _erroLink]),
       cache: InMemoryCache(),
     ));
     return GraphQLProvider(
