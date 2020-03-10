@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: <Widget>[
                     CircularProgressIndicator(),
                     SizedBox(height: 10),
-                    Text('Bucando suas informações...')
+                    Text('Buscando suas informações...')
                   ],
                 ),
               );
@@ -60,82 +60,77 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       child: Column(
         children: <Widget>[
-          profileImage(userInfo.profilePicUrl),
-          SizedBox(height: 20.0),
-          Column(
-            children: <Widget>[
-              Center(
-                child: Column(
-                  children: <Widget>[
-                    Text(userInfo.fullName),
-                    Text('@' + userInfo.username),
-                  ],
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 150.0,
+                  height: 150.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      fit: BoxFit.fill,
+                      image: NetworkImage(userInfo.profilePicUrl),
+                    ),
+                  ),
                 ),
-              ),
-              Row(
-                children: <Widget>[
-                  userInfoFollowFollowing(
-                    "Seguidores",
-                    userInfo.followerCount.toString(),
+                SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(userInfo.fullName),
+                      Text('@' + userInfo.username),
+                      SizedBox(height: 20),
+                      Text(userInfo.biography),
+                    ],
                   ),
-                  userInfoFollowFollowing(
-                    "Seguindo",
-                    userInfo.followingCount.toString(),
-                  ),
-                  userInfoFollowFollowing(
-                    "Não te segue",
-                    userInfo.followingCount.toString(),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-          Row(
-            children: <Widget>[
-              FlatButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            UserListScreen(title: 'Seguidores'),
-                      ),
-                    );
-                  },
-                  child: Text('Seguidores')),
-              FlatButton(onPressed: () {}, child: Text('Seguindo')),
-            ],
-          )
+          Expanded(
+            child: ListView(
+              children: <Widget>[
+                ListTile(
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  title: Text('Seguidores'),
+                  subtitle: Text(userInfo.followerCount.toString()),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserListScreen(title: 'Seguidores'),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  title: Text('Seguindo'),
+                  subtitle: Text(userInfo.followingCount.toString()),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserListScreen(title: 'Seguindo'),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  title: Text('Não te seguem'),
+                  subtitle: Text(userInfo.followingCount.toString()),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          UserListScreen(title: 'Não te seguem'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Center profileImage(uri) {
-    return Center(
-      child: Container(
-        width: 190.0,
-        height: 190.0,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          image: DecorationImage(
-            fit: BoxFit.fill,
-            image: NetworkImage(uri),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Expanded userInfoFollowFollowing(description, count) {
-    return Expanded(
-      child: Center(
-        child: Column(
-          children: <Widget>[
-            Text(count, style: TextStyle(fontSize: 20.0)),
-            Text(description, style: TextStyle(fontSize: 20.0)),
-          ],
-        ),
       ),
     );
   }

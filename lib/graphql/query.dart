@@ -1,6 +1,6 @@
-String myListFollowers = '''
-query{
-  myListFollowers{
+String myListFollowers = r'''
+query myListFollowers($maxId: String!){
+  myListFollowers(maxId: $maxId){
     nextMaxId
     size
     followers{

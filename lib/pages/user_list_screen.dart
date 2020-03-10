@@ -20,11 +20,25 @@ class UserListScreen extends StatefulWidget {
 }
 
 class _UserListScreenState extends State<UserListScreen> {
-  GraphQLClient client;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  List _listUsers;
+  final ScrollController _scrollController = ScrollController();
 
+  GraphQLClient client;
+  List _listUsers = [];
   bool isLoading = true;
+  String maxId = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        getData();
+      }
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -34,113 +48,86 @@ class _UserListScreenState extends State<UserListScreen> {
 
   getData() async {
     client = GraphQLProvider.of(context).value;
+    String typeQuery;
+    String typeUser;
+    DocumentNode query;
+
+    if (widget.title.compareTo('Seguidores') == 0) {
+      query = gql(myListFollowers);
+      typeQuery = 'myListFollowers';
+      typeUser = 'followers';
+    } else if (widget.title.compareTo('Seguindo') == 0) {
+      query = gql(myListFollowings);
+      typeQuery = 'myListFollowings';
+      typeUser = 'followings';
+    } else {
+      query = gql(myListUnfollowers);
+      typeQuery = 'myListUnfollowers';
+      typeUser = 'unfollowers';
+    }
+
+    QueryResult result = await client.query(
+      QueryOptions(
+        documentNode: query,
+        variables: <String, String>{'maxId': maxId},
+      ),
+    );
+
+    if (result.hasException) {
+      if (result.exception.graphqlErrors[0].message
+          .contains('Autorização pendente')) {
+        Navigator.pushReplacementNamed(context, AutorizationCodeView.tag);
+      }
+      print(result.exception.toString());
+    }
+
+    setState(() {
+      _listUsers.addAll(result.data[typeQuery][typeUser]);
+      isLoading = false;
+      maxId = result.data[typeQuery]['nextMaxId'];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    client = GraphQLProvider.of(context).value;
-
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(title: Text(widget.title)),
       body: isLoading
-          ? CircularProgressIndicator()
-          : Column(
-              children: <Widget>[
-                ListView.builder(
-                  itemCount: _listUsers.length,
-                  itemBuilder: (context, index) {
-                    return Row(
-                      children: <Widget>[
-                        Text(index.toString()),
-                        FlatButton(
-                          onPressed: () {
-                            print(index);
-                          },
-                          child: Text("Remove"),
-                        )
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
+          ? Center(child: CircularProgressIndicator())
+          : buildListView(),
     );
   }
 
-  Query buildQuery(BuildContext context) {
-    return Query(
-      options: QueryOptions(documentNode: buildGql()),
-      builder: (QueryResult result,
-          {VoidCallback refetch, FetchMore fetchMore}) {
-        if (result.hasException) {
-          if (result.exception.graphqlErrors[0].message
-              .contains('Autorização pendente')) {
-            Navigator.pushReplacementNamed(context, AutorizationCodeView.tag);
-          }
-          return Text(result.exception.toString());
-        }
+  _unFollowUser(index) async {
+    final Map<String, dynamic> response = (await client.mutate(
+      MutationOptions(documentNode: gql(unfollow), variables: <String, String>{
+        'pk': _listUsers[index]['pk'],
+      }),
+    ))
+        .data;
+    setState(() {
+      _listUsers.removeAt(index);
+    });
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Text(response['unfollow']['message']),
+      duration: Duration(seconds: 3),
+    ));
+  }
 
-        if (result.loading) {
+  ListView buildListView() {
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: _listUsers.length + 1,
+      itemBuilder: (context, index) {
+        if (index == _listUsers.length) {
           return Center(child: CircularProgressIndicator());
         }
 
-        List _listUsers;
-
-        if (widget.title.compareTo('Seguidores') == 0) {
-          print('Seguidores');
-          _listUsers = result.data['myListFollowers']['followers'];
-        } else if (widget.title.compareTo('Seguindo') == 0) {
-          print('Seguindo');
-          _listUsers = result.data['myListFollowings']['followings'];
-        } else {
-          print(widget.title.compareTo('Seguindo'));
-          _listUsers = result.data['myListUnfollowers'];
-        }
-
-        return buildListView(_listUsers);
-      },
-    );
-  }
-
-  DocumentNode buildGql() {
-    if (widget.title.compareTo('Seguidores') == 0) {
-      print('Seguidores');
-      return gql(myListFollowers);
-    } else if (widget.title.compareTo('Seguindo') == 0) {
-      print('Seguindo');
-      return gql(myListFollowings);
-    } else {
-      print(widget.title.compareTo('Seguindo'));
-      return gql(myListUnfollowers);
-    }
-  }
-
-  ListView buildListView(List _listUsers) {
-    return ListView.builder(
-      itemCount: _listUsers.length,
-      itemBuilder: (context, index) {
         return CardUser(
           fullName: _listUsers[index]['fullName'],
           img: _listUsers[index]['profilePicUrl'],
-          onDelete: () async {
-            final Map<String, dynamic> response = (await client.mutate(
-              MutationOptions(
-                  documentNode: gql(unfollow),
-                  variables: <String, String>{
-                    'pk': _listUsers[index]['pk'],
-                  }),
-            ))
-                .data;
-            print(response);
-            setState(() {
-              _listUsers.removeAt(index);
-            });
-            _scaffoldKey.currentState.showSnackBar(SnackBar(
-              content: Text(response['unfollow']['message']),
-              duration: Duration(seconds: 3),
-            ));
-          },
+          onDelete: () => _unFollowUser(index),
           username: _listUsers[index]['username'],
         );
       },
