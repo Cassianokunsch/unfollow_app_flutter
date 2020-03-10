@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
 import 'package:unfollow_app_flutter/models/user_info.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
+import 'package:unfollow_app_flutter/pages/login_screen.dart';
 import 'package:unfollow_app_flutter/pages/user_list_screen.dart';
 
 import 'package:unfollow_app_flutter/storage.dart';
@@ -17,25 +18,46 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  GraphQLClient client;
+  UserInfo _userInfo;
+  bool isLoading = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    getUserinfo();
+  }
+
+  getUserinfo() async {
+    client = GraphQLProvider.of(context).value;
+
+    QueryResult result = await client.query(
+      QueryOptions(documentNode: gql(me)),
+    );
+
+    if (result.hasException) {
+      if (result.exception.graphqlErrors[0].message
+          .contains('Autorização pendente')) {
+        Navigator.pushReplacementNamed(context, AutorizationCodeView.routeName);
+      } else if (result.exception.graphqlErrors[0].message
+          .contains('Não há sessão para esse usuário!')) {
+        await setToken('');
+        Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+      }
+    } else {
+      setState(() {
+        _userInfo = UserInfo.fromJson(result.data['me']);
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Query(
-          options: QueryOptions(documentNode: gql(me)),
-          builder: (QueryResult result,
-              {VoidCallback refetch, FetchMore fetchMore}) {
-            if (result.hasException) {
-              if (result.exception.graphqlErrors[0].message
-                  .contains('Autorização pendente')) {
-                Navigator.pushReplacementNamed(
-                    context, AutorizationCodeView.tag);
-              }
-              return Text(result.exception.toString());
-            }
-
-            if (result.loading) {
-              return Center(
+        child: isLoading
+            ? Center(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -45,18 +67,46 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text('Buscando suas informações...')
                   ],
                 ),
-              );
-            }
-            setUser(result.data['me']);
-            return buildBody(UserInfo.fromJson(result.data['me']));
-          },
-        ),
+              )
+            : buildBody(_userInfo),
       ),
     );
   }
 
+  Query buildQuery(BuildContext context) {
+    return Query(
+      options: QueryOptions(documentNode: gql(me)),
+      builder: (QueryResult result,
+          {VoidCallback refetch, FetchMore fetchMore}) {
+        if (result.hasException) {
+          if (result.exception.graphqlErrors[0].message
+              .contains('Autorização pendente')) {
+            Navigator.pushReplacementNamed(
+                context, AutorizationCodeView.routeName);
+          }
+          return Text(result.exception.toString());
+        }
+
+        if (result.loading) {
+          return Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                CircularProgressIndicator(),
+                SizedBox(height: 10),
+                Text('Buscando suas informações...')
+              ],
+            ),
+          );
+        }
+        setUser(result.data['me']);
+        return buildBody(UserInfo.fromJson(result.data['me']));
+      },
+    );
+  }
+
   Container buildBody(UserInfo userInfo) {
-    print(userInfo.username);
     return Container(
       child: Column(
         children: <Widget>[

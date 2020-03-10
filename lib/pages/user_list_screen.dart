@@ -5,6 +5,8 @@ import 'package:unfollow_app_flutter/components/card_user.dart';
 import 'package:unfollow_app_flutter/graphql/mutation.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
+import 'package:unfollow_app_flutter/pages/login_screen.dart';
+import 'package:unfollow_app_flutter/storage.dart';
 
 class UserListScreen extends StatefulWidget {
   static String tag = '/user_list';
@@ -76,16 +78,31 @@ class _UserListScreenState extends State<UserListScreen> {
     if (result.hasException) {
       if (result.exception.graphqlErrors[0].message
           .contains('Autorização pendente')) {
-        Navigator.pushReplacementNamed(context, AutorizationCodeView.tag);
+        Navigator.pushReplacementNamed(context, AutorizationCodeView.routeName);
+      } else if (result.exception.graphqlErrors[0].message
+          .contains('Não há sessão para esse usuário!')) {
+        await setToken('');
+        Navigator.pushReplacementNamed(context, LoginScreen.routeName);
       }
-      print(result.exception.toString());
+      _scaffoldKey.currentState
+          .showSnackBar(snackBar(result.exception.graphqlErrors[0].message));
+      setState(() {
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        _listUsers.addAll(result.data[query][typeUser]);
+        isLoading = false;
+        maxId = result.data[typeQuery]['nextMaxId'];
+      });
     }
+  }
 
-    setState(() {
-      _listUsers.addAll(result.data[typeQuery][typeUser]);
-      isLoading = false;
-      maxId = result.data[typeQuery]['nextMaxId'];
-    });
+  SnackBar snackBar(String message) {
+    return SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: 3),
+    );
   }
 
   @override
@@ -106,13 +123,12 @@ class _UserListScreenState extends State<UserListScreen> {
       }),
     ))
         .data;
+    _scaffoldKey.currentState.showSnackBar(
+      snackBar(response['unfollow']['message']),
+    );
     setState(() {
       _listUsers.removeAt(index);
     });
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text(response['unfollow']['message']),
-      duration: Duration(seconds: 3),
-    ));
   }
 
   ListView buildListView() {
@@ -120,8 +136,21 @@ class _UserListScreenState extends State<UserListScreen> {
       controller: _scrollController,
       itemCount: _listUsers.length + 1,
       itemBuilder: (context, index) {
-        if (index == _listUsers.length) {
+        print(_listUsers.length);
+        if (index == _listUsers.length && (_listUsers.length + 1) == 2) {
           return Center(child: CircularProgressIndicator());
+        }
+
+        if ((_listUsers.length + 1) == 1) {
+          return Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Um erro ocorreu. Tente mais tarde!"),
+              ],
+            ),
+          );
         }
 
         return CardUser(

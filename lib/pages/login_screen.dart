@@ -24,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
   _onCompleted(dynamic resultData) async {
     if (resultData != null) {
       await setToken(resultData['login']['token']);
-      print(resultData['login']['token']);
       Navigator.pushReplacementNamed(context, HomeScreen.routeName);
     }
   }

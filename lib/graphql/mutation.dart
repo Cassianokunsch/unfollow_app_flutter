@@ -19,6 +19,7 @@ String sendCodeChallenge = r'''
 mutation sendCodeChallenge($code: String!){
   sendCodeChallenge(code: $code){
     message
+    token
   }
 }
 ''';

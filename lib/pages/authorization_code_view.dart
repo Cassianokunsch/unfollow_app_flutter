@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/graphql/mutation.dart';
-import 'package:unfollow_app_flutter/pages/user_list_screen.dart';
+import 'package:unfollow_app_flutter/pages/home_screen.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
 class AutorizationCodeView extends StatefulWidget {
-  static String tag = '/code_auth';
+  static String routeName = '/code';
   @override
   _AutorizationCodeViewState createState() => _AutorizationCodeViewState();
 }
@@ -19,12 +20,47 @@ class _AutorizationCodeViewState extends State<AutorizationCodeView> {
     return Scaffold(
       key: _scaffoldKey,
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Text("Por favor insira o código recebido por sms"),
-            TextFormField(controller: _codeController),
-            _sendCode(context)
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                "Por favor, insira o código recebido por sms:",
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                maxLength: 6,
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  WhitelistingTextInputFormatter.digitsOnly
+                ],
+                controller: _codeController,
+                cursorColor: Color.fromRGBO(255, 255, 255, 0.5),
+                decoration: InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                        color: Color.fromRGBO(255, 255, 255, 0.3), width: 2.0),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(5),
+                    ),
+                  ),
+                  filled: true,
+                  hintStyle: TextStyle(
+                    color: Colors.grey[800],
+                  ),
+                  hintText: 'Code',
+                  fillColor: Color.fromRGBO(255, 255, 255, 0.5),
+                ),
+              ),
+              SizedBox(height: 10),
+              _sendCode(context)
+            ],
+          ),
         ),
       ),
     );
@@ -37,8 +73,8 @@ class _AutorizationCodeViewState extends State<AutorizationCodeView> {
         onCompleted: (dynamic resultData) async {
           if (resultData != null) {
             await setToken(resultData['login']['token']);
-            print(resultData['login']['token']);
-            Navigator.pushReplacementNamed(context, UserListScreen.tag);
+
+            Navigator.pushReplacementNamed(context, HomeScreen.routeName);
           }
         },
         onError: (OperationException error) {
