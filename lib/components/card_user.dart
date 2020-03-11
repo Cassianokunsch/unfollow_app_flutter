@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:unfollow_app_flutter/models/user_info.dart';
+import 'package:unfollow_app_flutter/models/user.dart';
 
 class CardUser extends StatelessWidget {
-  final UserInfo user;
+  final User user;
   const CardUser({
     Key key,
     @required this.user,

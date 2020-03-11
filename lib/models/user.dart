@@ -10,15 +10,16 @@ class User {
   int latestReelMedia;
 
   User(
-      this.pk,
-      this.username,
-      this.fullName,
-      this.isPrivate,
-      this.profilePicUrl,
-      this.profilePicId,
-      this.isVerified,
-      this.hasAnonymousProfilePicture,
-      this.latestReelMedia);
+    this.pk,
+    this.username,
+    this.fullName,
+    this.isPrivate,
+    this.profilePicUrl,
+    this.profilePicId,
+    this.isVerified,
+    this.hasAnonymousProfilePicture,
+    this.latestReelMedia,
+  );
 
   User.fromJson(Map<String, dynamic> json) {
     this.pk = json['pk'];

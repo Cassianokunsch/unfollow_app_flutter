@@ -89,8 +89,6 @@ class _UserListScreenState extends State<UserListScreen> {
         isLoading = false;
       });
     } else {
-      print(result.data['myListFollowings']);
-
       setState(() {
         List list = result.data['myListFollowings'][typeUser];
         list.forEach((item) => _listUsers.add(User.fromJson(item)));
@@ -138,7 +136,6 @@ class _UserListScreenState extends State<UserListScreen> {
       controller: _scrollController,
       itemCount: _listUsers.length + 1,
       itemBuilder: (context, index) {
-        print(_listUsers.length);
         if (index == _listUsers.length && (_listUsers.length + 1) == 2) {
           return Center(child: CircularProgressIndicator());
         }

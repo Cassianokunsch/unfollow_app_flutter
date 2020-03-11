@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
 import 'package:unfollow_app_flutter/models/user_info.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
+import 'package:unfollow_app_flutter/pages/follower_screen.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
 import 'package:unfollow_app_flutter/pages/user_list_screen.dart';
 
@@ -157,12 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   trailing: Icon(Icons.arrow_forward_ios),
                   title: Text('Seguidores'),
                   subtitle: Text(userInfo.followerCount.toString()),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserListScreen(title: 'Seguidores'),
-                    ),
-                  ),
+                  onTap: () =>
+                      Navigator.pushNamed(context, FollowerScreen.routeName),
                 ),
                 ListTile(
                   trailing: Icon(Icons.arrow_forward_ios),
