@@ -4,6 +4,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/components/card_user.dart';
 import 'package:unfollow_app_flutter/graphql/mutation.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
+import 'package:unfollow_app_flutter/models/user.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
 import 'package:unfollow_app_flutter/storage.dart';
@@ -26,7 +27,7 @@ class _UserListScreenState extends State<UserListScreen> {
   final ScrollController _scrollController = ScrollController();
 
   GraphQLClient client;
-  List _listUsers = [];
+  List<User> _listUsers = [];
   bool isLoading = true;
   String maxId = '';
 
@@ -89,8 +90,10 @@ class _UserListScreenState extends State<UserListScreen> {
       });
     } else {
       print(result.data['myListFollowings']);
+
       setState(() {
-        _listUsers.addAll(result.data['myListFollowings'][typeUser]);
+        List list = result.data['myListFollowings'][typeUser];
+        list.forEach((item) => _listUsers.add(User.fromJson(item)));
         isLoading = false;
         maxId = result.data[typeQuery]['nextMaxId'];
       });
@@ -118,7 +121,7 @@ class _UserListScreenState extends State<UserListScreen> {
   _unFollowUser(index) async {
     final Map<String, dynamic> response = (await client.mutate(
       MutationOptions(documentNode: gql(unfollow), variables: <String, String>{
-        'pk': _listUsers[index]['pk'],
+        'pk': _listUsers[index].pk,
       }),
     ))
         .data;
@@ -152,16 +155,7 @@ class _UserListScreenState extends State<UserListScreen> {
           );
         }
 
-        return CardUser(
-          fullName: _listUsers[index]['fullName'],
-          img: _listUsers[index]['profilePicUrl'],
-          onPressedIcon: widget.title.compareTo("Não te seguem") == 0
-              ? () => _unFollowUser(index)
-              : () => print("Teste"),
-          username: _listUsers[index]['username'],
-          isUnfollow:
-              widget.title.compareTo("Não te seguem") == 0 ? true : false,
-        );
+        return CardUser(user: _listUsers[index]);
       },
     );
   }

@@ -5,12 +5,7 @@ import 'package:unfollow_app_flutter/models/user_info.dart';
 
 Future<String> getToken() async {
   final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token');
-  if (token == '') {
-    return '';
-  }
-
-  return token;
+  return prefs.getString('token');
 }
 
 Future<void> setToken(String token) async {
@@ -25,5 +20,11 @@ Future<void> setUser(Map<String, dynamic> user) async {
 
 Future<UserInfo> getUser() async {
   final prefs = await SharedPreferences.getInstance();
+  String user = prefs.getString('user');
+
+  if (user == null) {
+    return null;
+  }
+
   return UserInfo.fromJson(jsonDecode(prefs.getString('user')));
 }

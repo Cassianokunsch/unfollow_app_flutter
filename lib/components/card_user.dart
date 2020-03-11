@@ -1,60 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:unfollow_app_flutter/models/user_info.dart';
 
 class CardUser extends StatelessWidget {
-  final String img;
-  final String fullName;
-  final String username;
-  final Function onPressedIcon;
-  final bool isUnfollow;
-
-  const CardUser(
-      {this.img,
-      this.fullName,
-      this.username,
-      this.onPressedIcon,
-      this.isUnfollow});
+  final UserInfo user;
+  const CardUser({
+    Key key,
+    @required this.user,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: 8.0, bottom: 8.0, left: 16.0, right: 8.0),
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 60.0,
-            height: 60.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.black26,
-                width: 1,
-              ),
-              image: DecorationImage(
-                fit: BoxFit.fill,
-                image: NetworkImage(img),
-              ),
-            ),
-          ),
-          SizedBox(width: 15.0),
-          Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(username),
-                Text(fullName, style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-          Spacer(),
-          IconButton(
-            color: Colors.white54,
-            icon:
-                isUnfollow ? Icon(Icons.delete) : Icon(Icons.arrow_forward_ios),
-            onPressed: () {
-              onPressedIcon();
-            },
-          ),
-        ],
+    return ListTile(
+      leading: CircleAvatar(
+        radius: 30.0,
+        backgroundImage: NetworkImage(user.profilePicUrl),
+      ),
+      title: Text(user.username),
+      subtitle: Text(user.fullName),
+      trailing: IconButton(
+        color: Colors.white54,
+        icon: Icon(Icons.delete),
+        onPressed: () {
+          print('object');
+        },
       ),
     );
   }

@@ -9,7 +9,7 @@ import 'package:unfollow_app_flutter/pages/user_list_screen.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
 class HomeScreen extends StatefulWidget {
-  static String routeName = 'home';
+  static String routeName = '/home';
 
   @override
   _HomeScreenState createState() {
@@ -29,26 +29,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   getUserinfo() async {
-    client = GraphQLProvider.of(context).value;
+    _userInfo = await getUser();
 
-    QueryResult result = await client.query(
-      QueryOptions(documentNode: gql(me)),
-    );
-
-    if (result.hasException) {
-      if (result.exception.graphqlErrors[0].message
-          .contains('Autorização pendente')) {
-        Navigator.pushReplacementNamed(context, AutorizationCodeView.routeName);
-      } else if (result.exception.graphqlErrors[0].message
-          .contains('Não há sessão para esse usuário!')) {
-        await setToken('');
-        Navigator.pushReplacementNamed(context, LoginScreen.routeName);
-      }
-    } else {
+    if (_userInfo != null) {
       setState(() {
-        _userInfo = UserInfo.fromJson(result.data['me']);
         isLoading = false;
       });
+    } else {
+      client = GraphQLProvider.of(context).value;
+
+      QueryResult result = await client.query(
+        QueryOptions(documentNode: gql(me)),
+      );
+
+      if (result.hasException) {
+        if (result.exception.graphqlErrors[0].message
+            .contains('Autorização pendente')) {
+          Navigator.pushReplacementNamed(
+              context, AutorizationCodeView.routeName);
+        } else if (result.exception.graphqlErrors[0].message
+            .contains('Não há sessão para esse usuário!')) {
+          await setToken('');
+          Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+        }
+      } else {
+        await setUser(result.data['me']);
+        setState(() {
+          _userInfo = UserInfo.fromJson(result.data['me']);
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -64,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: <Widget>[
                     CircularProgressIndicator(),
                     SizedBox(height: 10),
-                    Text('Buscando suas informações...')
+                    Text('Buscando dados da conta...')
                   ],
                 ),
               )
