@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
-import 'package:unfollow_app_flutter/models/user_info.dart';
+import 'package:unfollow_app_flutter/models/me_response.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 import 'package:unfollow_app_flutter/pages/follower_screen.dart';
+import 'package:unfollow_app_flutter/pages/following_screen.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
-import 'package:unfollow_app_flutter/pages/user_list_screen.dart';
+import 'package:unfollow_app_flutter/pages/unfollow_screen.dart';
 
 import 'package:unfollow_app_flutter/storage.dart';
 
@@ -20,19 +21,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   GraphQLClient client;
-  UserInfo _userInfo;
+  MeResponse _me;
   bool isLoading = true;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    getUserinfo();
+    _getMe();
   }
 
-  getUserinfo() async {
-    _userInfo = await getUser();
+  _getMe() async {
+    _me = await getUser();
 
-    if (_userInfo != null) {
+    if (_me != null) {
       setState(() {
         isLoading = false;
       });
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         await setUser(result.data['me']);
         setState(() {
-          _userInfo = UserInfo.fromJson(result.data['me']);
+          _me = MeResponse.fromJson(result.data['me']);
           isLoading = false;
         });
       }
@@ -79,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               )
-            : buildBody(_userInfo),
+            : buildBody(_me),
       ),
     );
   }
@@ -112,12 +113,12 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
         setUser(result.data['me']);
-        return buildBody(UserInfo.fromJson(result.data['me']));
+        return buildBody(MeResponse.fromJson(result.data['me']));
       },
     );
   }
 
-  Container buildBody(UserInfo userInfo) {
+  Container buildBody(MeResponse me) {
     return Container(
       child: Column(
         children: <Widget>[
@@ -132,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                     image: DecorationImage(
                       fit: BoxFit.fill,
-                      image: NetworkImage(userInfo.profilePicUrl),
+                      image: NetworkImage(me.profilePicUrl),
                     ),
                   ),
                 ),
@@ -141,10 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(userInfo.fullName),
-                      Text('@' + userInfo.username),
+                      Text(me.fullName),
+                      Text('@' + me.username),
                       SizedBox(height: 20),
-                      Text(userInfo.biography),
+                      Text(me.biography),
                     ],
                   ),
                 ),
@@ -154,41 +155,49 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: ListView(
               children: <Widget>[
-                ListTile(
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  title: Text('Seguidores'),
-                  subtitle: Text(userInfo.followerCount.toString()),
-                  onTap: () =>
-                      Navigator.pushNamed(context, FollowerScreen.routeName),
+                TileAction(
+                  title: 'Seguidores',
+                  subtitle: me.followerCount.toString(),
+                  routeName: FollowerScreen.routeName,
                 ),
-                ListTile(
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  title: Text('Seguindo'),
-                  subtitle: Text(userInfo.followingCount.toString()),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserListScreen(title: 'Seguindo'),
-                    ),
-                  ),
+                TileAction(
+                  title: 'Seguindo',
+                  subtitle: me.followingCount.toString(),
+                  routeName: FollowingScreen.routeName,
                 ),
-                ListTile(
-                  trailing: Icon(Icons.arrow_forward_ios),
-                  title: Text('Não te seguem'),
-                  subtitle: Text(userInfo.followingCount.toString()),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          UserListScreen(title: 'Não te seguem'),
-                    ),
-                  ),
+                TileAction(
+                  title: 'Não te seguem',
+                  subtitle: me.followingCount.toString(),
+                  routeName: UnfollowScreen.routeName,
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class TileAction extends StatelessWidget {
+  const TileAction({
+    Key key,
+    @required this.title,
+    @required this.subtitle,
+    @required this.routeName,
+  }) : super(key: key);
+
+  final String title;
+  final String subtitle;
+  final String routeName;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      trailing: Icon(Icons.arrow_forward_ios),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      onTap: () => Navigator.pushNamed(context, routeName),
     );
   }
 }

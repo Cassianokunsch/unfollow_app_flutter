@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/components/list_card_user.dart';
+import 'package:unfollow_app_flutter/graphql/mutation.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
-import 'package:unfollow_app_flutter/models/my_list_followers_response.dart';
+import 'package:unfollow_app_flutter/models/my_list_followings_response.dart';
 import 'package:unfollow_app_flutter/models/user.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
-import 'package:unfollow_app_flutter/pages/user_info.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
-class FollowerScreen extends StatefulWidget {
-  static String routeName = '/followers';
+class UnfollowScreen extends StatefulWidget {
+  static String routeName = '/unfollow';
 
-  const FollowerScreen({Key key}) : super(key: key);
+  const UnfollowScreen({Key key}) : super(key: key);
 
   @override
-  _FollowerScreenState createState() => _FollowerScreenState();
+  _UnfollowScreenState createState() => _UnfollowScreenState();
 }
 
-class _FollowerScreenState extends State<FollowerScreen> {
+class _UnfollowScreenState extends State<UnfollowScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
 
   GraphQLClient _client;
   bool _isLoading = true;
-  List<User> _followers = [];
-  String _maxId = '';
+  List<User> _myListUnfollowResponse;
 
   @override
   void initState() {
@@ -47,12 +46,9 @@ class _FollowerScreenState extends State<FollowerScreen> {
   }
 
   _getData() async {
-    MyListFollowersResponse response;
+    List response;
     QueryResult result = await _client.query(
-      QueryOptions(
-        documentNode: gql(myListFollowers),
-        variables: <String, String>{'maxId': _maxId},
-      ),
+      QueryOptions(documentNode: gql(myListUnfollowers)),
     );
 
     if (result.hasException) {
@@ -66,14 +62,32 @@ class _FollowerScreenState extends State<FollowerScreen> {
       _scaffoldKey.currentState.showSnackBar(
           SnackBar(content: Text(message), duration: Duration(seconds: 3)));
     } else {
-      response =
-          MyListFollowersResponse.fromJson(result.data['myListFollowers']);
+      response = List<User>.from(
+          result.data['myListUnfollowers'].map((x) => User.fromJson(x)));
     }
 
     setState(() {
       _isLoading = false;
-      _maxId = response.nextMaxId;
-      _followers.addAll(response.followers);
+      _myListUnfollowResponse = response;
+    });
+  }
+
+  _unFollowUser(index) async {
+    final Map<String, dynamic> response = (await _client.mutate(
+      MutationOptions(
+          documentNode: gql(Mutations.unfollow),
+          variables: <String, String>{
+            'pk': _myListUnfollowResponse[index].pk,
+          }),
+    ))
+        .data;
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+          content: Text(response['unfollow']['message']),
+          duration: Duration(seconds: 3)),
+    );
+    setState(() {
+      _myListUnfollowResponse.removeAt(index);
     });
   }
 
@@ -81,22 +95,15 @@ class _FollowerScreenState extends State<FollowerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(title: Text('Seguidores')),
+      appBar: AppBar(title: Text('Não te seguem')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : ListCardUser(
               scrollController: _scrollController,
-              listUsers: _followers,
-              icon: Icons.arrow_forward_ios,
-              onPressedIcon: (int index) => print('followers $index'),
-              onTap: (int index) {
-                print('tap followers $index');
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            UserInfoScreen(_followers[index].fullName)));
-              },
+              listUsers: _myListUnfollowResponse,
+              icon: Icons.delete,
+              onPressedIcon: (int index) => _unFollowUser(index),
+              onTap: () => print('tap unfollow'),
             ),
     );
   }

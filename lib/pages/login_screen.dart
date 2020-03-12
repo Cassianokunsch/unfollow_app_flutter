@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Mutation _loginButton(context) {
     return Mutation(
       options: MutationOptions(
-        documentNode: gql(login),
+        documentNode: gql(Mutations.login),
         onCompleted: (dynamic resultData) => _onCompleted(resultData),
         onError: (OperationException error) => _scaffoldKey.currentState
             .showSnackBar(snackBar(error.graphqlErrors[0].message)),

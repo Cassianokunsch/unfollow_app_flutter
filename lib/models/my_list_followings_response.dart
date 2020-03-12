@@ -1,19 +1,19 @@
-import 'package:unfollow_app_flutter/models/followings.dart';
+import 'package:unfollow_app_flutter/models/user.dart';
 
-class MyListFollowingResponse {
+class MyListFollowingsResponse {
   final String nextMaxId;
-  final List<Followings> followings;
+  final List<User> followings;
 
-  MyListFollowingResponse({
+  MyListFollowingsResponse({
     this.nextMaxId,
     this.followings,
   });
 
-  factory MyListFollowingResponse.fromJson(Map<String, dynamic> json) {
-    return MyListFollowingResponse(
+  factory MyListFollowingsResponse.fromJson(Map<String, dynamic> json) {
+    return MyListFollowingsResponse(
       nextMaxId: json['nextMaxId'],
-      followings: List<Followings>.from(
-          json['Following'].map((x) => Followings.fromJson(x))),
+      followings:
+          List<User>.from(json['followings'].map((x) => User.fromJson(x))),
     );
   }
 }

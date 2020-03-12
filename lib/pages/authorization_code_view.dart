@@ -69,7 +69,7 @@ class _AutorizationCodeViewState extends State<AutorizationCodeView> {
   Mutation _sendCode(context) {
     return Mutation(
       options: MutationOptions(
-        documentNode: gql(sendCodeChallenge),
+        documentNode: gql(Mutations.sendCodeChallenge),
         onCompleted: (dynamic resultData) async {
           if (resultData != null) {
             await setToken(resultData['login']['token']);

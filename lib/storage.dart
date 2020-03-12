@@ -1,7 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:unfollow_app_flutter/models/me_response.dart';
 import 'dart:convert';
-
-import 'package:unfollow_app_flutter/models/user_info.dart';
 
 Future<String> getToken() async {
   final prefs = await SharedPreferences.getInstance();
@@ -18,7 +17,7 @@ Future<void> setUser(Map<String, dynamic> user) async {
   await prefs.setString('user', json.encode(user));
 }
 
-Future<UserInfo> getUser() async {
+Future<MeResponse> getUser() async {
   final prefs = await SharedPreferences.getInstance();
   String user = prefs.getString('user');
 
@@ -26,5 +25,5 @@ Future<UserInfo> getUser() async {
     return null;
   }
 
-  return UserInfo.fromJson(jsonDecode(prefs.getString('user')));
+  return MeResponse.fromJson(jsonDecode(prefs.getString('user')));
 }

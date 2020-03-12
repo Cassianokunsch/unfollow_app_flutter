@@ -2,30 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/components/list_card_user.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
-import 'package:unfollow_app_flutter/models/my_list_followers_response.dart';
+import 'package:unfollow_app_flutter/models/my_list_followings_response.dart';
 import 'package:unfollow_app_flutter/models/user.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
-import 'package:unfollow_app_flutter/pages/user_info.dart';
 import 'package:unfollow_app_flutter/storage.dart';
 
-class FollowerScreen extends StatefulWidget {
-  static String routeName = '/followers';
+class FollowingScreen extends StatefulWidget {
+  static String routeName = '/followings';
 
-  const FollowerScreen({Key key}) : super(key: key);
+  const FollowingScreen({Key key}) : super(key: key);
 
   @override
-  _FollowerScreenState createState() => _FollowerScreenState();
+  _FollowingScreenState createState() => _FollowingScreenState();
 }
 
-class _FollowerScreenState extends State<FollowerScreen> {
+class _FollowingScreenState extends State<FollowingScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
 
   GraphQLClient _client;
   bool _isLoading = true;
-  List<User> _followers = [];
+  MyListFollowingsResponse _myListFollowingsResponse;
+
   String _maxId = '';
+  List<User> _followings = [];
 
   @override
   void initState() {
@@ -47,10 +48,10 @@ class _FollowerScreenState extends State<FollowerScreen> {
   }
 
   _getData() async {
-    MyListFollowersResponse response;
+    MyListFollowingsResponse response;
     QueryResult result = await _client.query(
       QueryOptions(
-        documentNode: gql(myListFollowers),
+        documentNode: gql(myListFollowings),
         variables: <String, String>{'maxId': _maxId},
       ),
     );
@@ -67,13 +68,13 @@ class _FollowerScreenState extends State<FollowerScreen> {
           SnackBar(content: Text(message), duration: Duration(seconds: 3)));
     } else {
       response =
-          MyListFollowersResponse.fromJson(result.data['myListFollowers']);
+          MyListFollowingsResponse.fromJson(result.data['myListFollowings']);
     }
 
     setState(() {
       _isLoading = false;
       _maxId = response.nextMaxId;
-      _followers.addAll(response.followers);
+      _followings.addAll(response.followings);
     });
   }
 
@@ -81,22 +82,15 @@ class _FollowerScreenState extends State<FollowerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(title: Text('Seguidores')),
+      appBar: AppBar(title: Text('Seguindo')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : ListCardUser(
               scrollController: _scrollController,
-              listUsers: _followers,
+              listUsers: _myListFollowingsResponse.followings,
               icon: Icons.arrow_forward_ios,
-              onPressedIcon: (int index) => print('followers $index'),
-              onTap: (int index) {
-                print('tap followers $index');
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            UserInfoScreen(_followers[index].fullName)));
-              },
+              onPressedIcon: (int index) => print('followings'),
+              onTap: () => print('tap followings'),
             ),
     );
   }

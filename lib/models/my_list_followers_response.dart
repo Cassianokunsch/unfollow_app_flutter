@@ -1,8 +1,8 @@
-import 'package:unfollow_app_flutter/models/followers.dart';
+import 'package:unfollow_app_flutter/models/user.dart';
 
 class MyListFollowersResponse {
   final String nextMaxId;
-  final List<Followers> followers;
+  final List<User> followers;
 
   MyListFollowersResponse({
     this.nextMaxId,
@@ -12,8 +12,8 @@ class MyListFollowersResponse {
   factory MyListFollowersResponse.fromJson(Map<String, dynamic> json) {
     return MyListFollowersResponse(
       nextMaxId: json['nextMaxId'],
-      followers: List<Followers>.from(
-          json['followers'].map((x) => Followers.fromJson(x))),
+      followers:
+          List<User>.from(json['followers'].map((x) => User.fromJson(x))),
     );
   }
 }

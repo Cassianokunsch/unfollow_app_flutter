@@ -3,9 +3,15 @@ import 'package:unfollow_app_flutter/models/user.dart';
 
 class CardUser extends StatelessWidget {
   final User user;
+  final IconData icon;
+  final Function onPressedIcon, onTap;
+
   const CardUser({
     Key key,
     @required this.user,
+    @required this.icon,
+    @required this.onPressedIcon,
+    @required this.onTap,
   }) : super(key: key);
 
   @override
@@ -19,11 +25,14 @@ class CardUser extends StatelessWidget {
       subtitle: Text(user.fullName),
       trailing: IconButton(
         color: Colors.white54,
-        icon: Icon(Icons.delete),
+        icon: Icon(icon),
         onPressed: () {
-          print('object');
+          onPressedIcon();
         },
       ),
+      onTap: () {
+        onTap();
+      },
     );
   }
 }
