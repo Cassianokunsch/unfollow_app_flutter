@@ -3,7 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/components/list_card_user.dart';
 import 'package:unfollow_app_flutter/graphql/mutation.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
-import 'package:unfollow_app_flutter/models/my_list_followings_response.dart';
+import 'package:unfollow_app_flutter/models/my_unfollowers_dto.dart';
 import 'package:unfollow_app_flutter/models/user.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
@@ -24,7 +24,9 @@ class _UnfollowScreenState extends State<UnfollowScreen> {
 
   GraphQLClient _client;
   bool _isLoading = true;
-  List<User> _myListUnfollowResponse;
+
+  List<User> _myUnfollowDto = [];
+  String _nextPage = '';
 
   @override
   void initState() {
@@ -46,9 +48,12 @@ class _UnfollowScreenState extends State<UnfollowScreen> {
   }
 
   _getData() async {
-    List response;
+    MyUnfollowersDto response;
     QueryResult result = await _client.query(
-      QueryOptions(documentNode: gql(myListUnfollowers)),
+      QueryOptions(
+        documentNode: gql(Queries.myUnfollowers()),
+        variables: <String, String>{'nextPage': _nextPage},
+      ),
     );
 
     if (result.hasException) {
@@ -62,13 +67,12 @@ class _UnfollowScreenState extends State<UnfollowScreen> {
       _scaffoldKey.currentState.showSnackBar(
           SnackBar(content: Text(message), duration: Duration(seconds: 3)));
     } else {
-      response = List<User>.from(
-          result.data['myListUnfollowers'].map((x) => User.fromJson(x)));
+      response = MyUnfollowersDto.fromJson(result.data['myUnfollowers']);
     }
 
     setState(() {
       _isLoading = false;
-      _myListUnfollowResponse = response;
+      _myUnfollowDto.addAll(response.unfollowers);
     });
   }
 
@@ -77,7 +81,7 @@ class _UnfollowScreenState extends State<UnfollowScreen> {
       MutationOptions(
           documentNode: gql(Mutations.unfollow),
           variables: <String, String>{
-            'pk': _myListUnfollowResponse[index].pk,
+            'pk': _myUnfollowDto[index].pk,
           }),
     ))
         .data;
@@ -87,24 +91,26 @@ class _UnfollowScreenState extends State<UnfollowScreen> {
           duration: Duration(seconds: 3)),
     );
     setState(() {
-      _myListUnfollowResponse.removeAt(index);
+      _myUnfollowDto.removeAt(index);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(title: Text('Não te seguem')),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : ListCardUser(
-              scrollController: _scrollController,
-              listUsers: _myListUnfollowResponse,
-              icon: Icons.delete,
-              onPressedIcon: (int index) => _unFollowUser(index),
-              onTap: () => print('tap unfollow'),
-            ),
-    );
+        key: _scaffoldKey,
+        appBar: AppBar(title: Text('Não te seguem')),
+        body: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : _myUnfollowDto.length > 0
+                ? ListCardUser(
+                    scrollController: _scrollController,
+                    listUsers: _myUnfollowDto,
+                    icon: Icons.delete,
+                    onPressedIcon: (int index) => _unFollowUser(index),
+                    onTap: () => print('tap unfollow'),
+                  )
+                : Center(
+                    child: Text("Nada todo mundo que você segue te segue!")));
   }
 }

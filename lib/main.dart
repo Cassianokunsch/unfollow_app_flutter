@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClientProvider(
-      uri: "https://unfollow-app-graphene.herokuapp.com/",
+      uri: "https://unfollow-app-graphene.herokuapp.com/graphql",
       //uri: "http://10.15.240.14:5000/",
       child: MaterialApp(
         theme: ThemeData.dark(),

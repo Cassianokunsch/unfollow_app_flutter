@@ -1,4 +1,6 @@
-class MeResponse {
+import 'package:unfollow_app_flutter/models/feed_dto.dart';
+
+class UserInfoDto {
   String pk;
   String username;
   String fullName;
@@ -11,8 +13,9 @@ class MeResponse {
   int followerCount;
   int followingCount;
   String biography;
+  Feed feed;
 
-  MeResponse(
+  UserInfoDto(
     this.pk,
     this.username,
     this.fullName,
@@ -25,9 +28,10 @@ class MeResponse {
     this.followerCount,
     this.followingCount,
     this.biography,
+    this.feed,
   );
 
-  MeResponse.fromJson(Map<String, dynamic> json) {
+  UserInfoDto.fromJson(Map<String, dynamic> json) {
     this.pk = json['pk'];
     this.username = json['username'];
     this.fullName = json['fullName'];
@@ -40,5 +44,6 @@ class MeResponse {
     this.followerCount = json['followerCount'];
     this.followingCount = json['followingCount'];
     this.biography = json['biography'];
+    this.feed = Feed.fromJson(json['feed']);
   }
 }

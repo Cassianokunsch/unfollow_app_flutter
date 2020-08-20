@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/components/list_card_user.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
-import 'package:unfollow_app_flutter/models/my_list_followings_response.dart';
+import 'package:unfollow_app_flutter/models/my_followings_dto.dart';
 import 'package:unfollow_app_flutter/models/user.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
@@ -23,9 +23,8 @@ class _FollowingScreenState extends State<FollowingScreen> {
 
   GraphQLClient _client;
   bool _isLoading = true;
-  MyListFollowingsResponse _myListFollowingsResponse;
 
-  String _maxId = '';
+  String _nextPage = '';
   List<User> _followings = [];
 
   @override
@@ -48,11 +47,11 @@ class _FollowingScreenState extends State<FollowingScreen> {
   }
 
   _getData() async {
-    MyListFollowingsResponse response;
+    MyFollowingsDto response;
     QueryResult result = await _client.query(
       QueryOptions(
-        documentNode: gql(myListFollowings),
-        variables: <String, String>{'maxId': _maxId},
+        documentNode: gql(Queries.myFollowings()),
+        variables: <String, String>{'nextPage': _nextPage},
       ),
     );
 
@@ -67,13 +66,12 @@ class _FollowingScreenState extends State<FollowingScreen> {
       _scaffoldKey.currentState.showSnackBar(
           SnackBar(content: Text(message), duration: Duration(seconds: 3)));
     } else {
-      response =
-          MyListFollowingsResponse.fromJson(result.data['myListFollowings']);
+      response = MyFollowingsDto.fromJson(result.data['myFollowings']);
     }
 
     setState(() {
       _isLoading = false;
-      _maxId = response.nextMaxId;
+      _nextPage = response?.nextPage;
       _followings.addAll(response.followings);
     });
   }
@@ -87,7 +85,7 @@ class _FollowingScreenState extends State<FollowingScreen> {
           ? Center(child: CircularProgressIndicator())
           : ListCardUser(
               scrollController: _scrollController,
-              listUsers: _myListFollowingsResponse.followings,
+              listUsers: _followings,
               icon: Icons.arrow_forward_ios,
               onPressedIcon: (int index) => print('followings'),
               onTap: () => print('tap followings'),

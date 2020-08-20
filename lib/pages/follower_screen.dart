@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:unfollow_app_flutter/components/list_card_user.dart';
 import 'package:unfollow_app_flutter/graphql/query.dart';
-import 'package:unfollow_app_flutter/models/my_list_followers_response.dart';
+import 'package:unfollow_app_flutter/models/my_followers_dto.dart';
 import 'package:unfollow_app_flutter/models/user.dart';
 import 'package:unfollow_app_flutter/pages/authorization_code_view.dart';
 import 'package:unfollow_app_flutter/pages/login_screen.dart';
@@ -25,7 +25,7 @@ class _FollowerScreenState extends State<FollowerScreen> {
   GraphQLClient _client;
   bool _isLoading = true;
   List<User> _followers = [];
-  String _maxId = '';
+  String _nextPage = '';
 
   @override
   void initState() {
@@ -47,32 +47,33 @@ class _FollowerScreenState extends State<FollowerScreen> {
   }
 
   _getData() async {
-    MyListFollowersResponse response;
+    MyFollowersDto response;
     QueryResult result = await _client.query(
       QueryOptions(
-        documentNode: gql(myListFollowers),
-        variables: <String, String>{'maxId': _maxId},
+        documentNode: gql(Queries.myFollowers()),
+        variables: <String, String>{'nextPage': _nextPage},
       ),
     );
 
     if (result.hasException) {
       var message = result.exception.graphqlErrors[0].message;
-      if (message.contains('Autorização pendente')) {
+      if (message.contains(
+          "Autorização pendente! Use a mutation sendCodeChallenge para inserir o código de segurança!")) {
         Navigator.pushReplacementNamed(context, AutorizationCodeView.routeName);
-      } else if (message.contains('Não há sessão para esse usuário!')) {
+      } else if (message
+          .contains("Não autorizado. Não há sessão para esse usuário!")) {
         await setToken('');
         Navigator.pushReplacementNamed(context, LoginScreen.routeName);
       }
       _scaffoldKey.currentState.showSnackBar(
           SnackBar(content: Text(message), duration: Duration(seconds: 3)));
     } else {
-      response =
-          MyListFollowersResponse.fromJson(result.data['myListFollowers']);
+      response = MyFollowersDto.fromJson(result.data['myFollowers']);
     }
 
     setState(() {
       _isLoading = false;
-      _maxId = response.nextMaxId;
+      _nextPage = response?.nextPage;
       _followers.addAll(response.followers);
     });
   }
@@ -92,10 +93,11 @@ class _FollowerScreenState extends State<FollowerScreen> {
               onTap: (int index) {
                 print('tap followers $index');
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            UserInfoScreen(_followers[index].fullName)));
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserInfoScreen(_followers[index]),
+                  ),
+                );
               },
             ),
     );
